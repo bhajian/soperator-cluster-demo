@@ -15,5 +15,9 @@ resource "nebius_vpc_v1_subnet" "this" {
   network_id = nebius_vpc_v1_network.this.id
   name       = "behnam-cluster-subnet"
 
-  ipv4_private_cidrs = ["10.0.0.0/16"]
+  ipv4_private_pools = {
+    pools = [{
+      cidrs = [{ cidr = "10.0.0.0/16" }]
+    }]
+  }
 }
