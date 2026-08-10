@@ -153,9 +153,7 @@ slurm_nodeset_workers = [
       size_gibibytes       = 512
       block_size_kibibytes = 4
     }
-    gpu_cluster = {
-      infiniband_fabric = ""
-    }
+    gpu_cluster                              = null
     preemptible                              = null
     features                                 = null
     create_partition                         = null
@@ -272,7 +270,7 @@ slurm_sssd_ldap_ca_config_map_ref_name = ""
 
 # TODO: replace with your SSH public key before running terraform apply
 slurm_login_ssh_root_public_keys = [
-  "",
+  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIItv2zTURVykDX8p1b/KmRnRZqE1vvHTYpV1vkQtGz6k behnam.hajian@nebius.com",
 ]
 
 #----------------------------------------------------------------------------------------------------------------------#
