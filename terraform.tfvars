@@ -136,7 +136,7 @@ slurm_nodeset_controller = {
 }
 
 slurm_nodeset_workers = [
-  # ── H100 SXM — 1 node, demo placeholder (scale size up before production) ──
+  # ── CPU worker — 1 node for demo/scheduling tests (no GPU fabric needed) ────
   {
     name = "worker"
     size = 1
@@ -145,8 +145,8 @@ slurm_nodeset_workers = [
       min_size = null
     }
     resource = {
-      platform = "gpu-h100-sxm"
-      preset   = "8gpu-128vcpu-1600gb"
+      platform = "cpu-d3"
+      preset   = "16vcpu-64gb"
     }
     boot_disk = {
       type                 = "NETWORK_SSD"
@@ -165,12 +165,7 @@ slurm_nodeset_workers = [
     }
     node_local_jail_submounts = []
     node_local_image_disk = {
-      enabled = true
-      spec = {
-        size_gibibytes  = 930
-        filesystem_type = "ext4"
-        disk_type       = "NETWORK_SSD_IO_M3"
-      }
+      enabled = false
     }
   },
 
