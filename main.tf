@@ -563,9 +563,17 @@ module "slurm" {
       ],
       nodeset.features != null ? nodeset.features : []
     )
-    cpu_topology                             = module.resources.cpu_topology_by_platform[nodeset.resource.platform][nodeset.resource.preset]
-    gres_name                                = lookup(module.resources.gres_name_by_platform, nodeset.resource.platform, null)
-    gres_config                              = lookup(module.resources.gres_config_by_platform, nodeset.resource.platform, null)
+    cpu_topology = module.resources.cpu_topology_by_platform[nodeset.resource.platform][nodeset.resource.preset]
+    gres_name    = lookup(module.resources.gres_name_by_platform, nodeset.resource.platform, null)
+    # gres_config_by_platform assumes full 8-GPU nodes (File=/dev/nvidia0-7,
+    # Cores=0-31/32-63). Our H200 workers use the 1gpu-16vcpu-200gb preset, so
+    # that config makes slurmctld fatal with "Invalid GRES data for gpu,
+    # Cores=0-31 (only 16 CPUs are available)". Override with a single-GPU line.
+    gres_config = (
+      nodeset.resource.platform == "gpu-h200-sxm" && nodeset.resource.preset == "1gpu-16vcpu-200gb"
+      ? ["AutoDetect=off Name=gpu Type=nvidia_h200 File=/dev/nvidia0 Cores=0-15 Flags=nvidia_gpu_env"]
+      : lookup(module.resources.gres_config_by_platform, nodeset.resource.platform, null)
+    )
     create_partition                         = nodeset.create_partition != null ? nodeset.create_partition : false
     ephemeral_nodes                          = nodeset.ephemeral_nodes
     persistent_volume_claim_retention_policy = nodeset.persistent_volume_claim_retention_policy
@@ -636,7 +644,10 @@ module "backups_store" {
   source = "../../modules/backups_store"
 
   iam_project_id = var.iam_project_id
-  instance_name  = local.k8s_cluster_name
+  # "-v2" suffix: the original "soperator-behnam-backups" bucket from the
+  # destroyed install is soft-deleted (ScheduledForDeletion) and its name is
+  # reserved until purge, causing BucketAlreadyExists on re-create.
+  instance_name = "${local.k8s_cluster_name}-v2"
 
   cleanup_bucket_on_destroy = var.cleanup_bucket_on_destroy
 
