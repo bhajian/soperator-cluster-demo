@@ -139,7 +139,8 @@ slurm_nodeset_workers = [
   # ── H200 NVLink SXM — 2 preemptible nodes, fabric-7, eu-north1 ─────────────
   # MUST be first: main.tf derives cuda_version from slurm_nodeset_workers[0].
   # gpu-h200-sxm → 13.0.2 (correct). If cpu-d3 were first it would be 12.9.0.
-  # 8 GPU · 128 vCPU · 1600 GiB RAM  |  GPU mem: 141 GB  |  medium launch chance
+  # 1 GPU · 16 vCPU · 200 GiB RAM  |  GPU mem: 141 GB  |  high launch chance
+  # (8gpu-128vcpu-1600gb hit NotEnoughResources — no preemptible capacity)
   {
     name = "worker-h200"
     size = 2
@@ -149,7 +150,7 @@ slurm_nodeset_workers = [
     }
     resource = {
       platform = "gpu-h200-sxm"
-      preset   = "8gpu-128vcpu-1600gb"
+      preset   = "1gpu-16vcpu-200gb"
     }
     boot_disk = {
       type                 = "NETWORK_SSD"
