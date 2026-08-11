@@ -136,40 +136,9 @@ slurm_nodeset_controller = {
 }
 
 slurm_nodeset_workers = [
-  # ── CPU worker — 1 node for demo/scheduling tests (no GPU fabric needed) ────
-  {
-    name = "worker"
-    size = 1
-    autoscaling = {
-      enabled  = false
-      min_size = null
-    }
-    resource = {
-      platform = "cpu-d3"
-      preset   = "16vcpu-64gb"
-    }
-    boot_disk = {
-      type                 = "NETWORK_SSD"
-      size_gibibytes       = 512
-      block_size_kibibytes = 4
-    }
-    gpu_cluster                              = null
-    preemptible                              = null
-    features                                 = null
-    create_partition                         = null
-    ephemeral_nodes                          = false
-    initial_number_ephemeral_nodes           = 0
-    persistent_volume_claim_retention_policy = {
-      when_deleted = "Delete"
-      when_scaled  = "Delete"
-    }
-    node_local_jail_submounts = []
-    node_local_image_disk = {
-      enabled = false
-    }
-  },
-
   # ── H200 NVLink SXM — 2 preemptible nodes, fabric-7, eu-north1 ─────────────
+  # MUST be first: main.tf derives cuda_version from slurm_nodeset_workers[0].
+  # gpu-h200-sxm → 13.0.2 (correct). If cpu-d3 were first it would be 12.9.0.
   # 8 GPU · 128 vCPU · 1600 GiB RAM  |  GPU mem: 141 GB  |  medium launch chance
   {
     name = "worker-h200"
@@ -207,6 +176,39 @@ slurm_nodeset_workers = [
         filesystem_type = "ext4"
         disk_type       = "NETWORK_SSD_IO_M3"
       }
+    }
+  },
+
+  # ── CPU worker — 1 node for demo/scheduling tests (no GPU fabric needed) ────
+  {
+    name = "worker"
+    size = 1
+    autoscaling = {
+      enabled  = false
+      min_size = null
+    }
+    resource = {
+      platform = "cpu-d3"
+      preset   = "16vcpu-64gb"
+    }
+    boot_disk = {
+      type                 = "NETWORK_SSD"
+      size_gibibytes       = 512
+      block_size_kibibytes = 4
+    }
+    gpu_cluster                              = null
+    preemptible                              = null
+    features                                 = null
+    create_partition                         = null
+    ephemeral_nodes                          = false
+    initial_number_ephemeral_nodes           = 0
+    persistent_volume_claim_retention_policy = {
+      when_deleted = "Delete"
+      when_scaled  = "Delete"
+    }
+    node_local_jail_submounts = []
+    node_local_image_disk = {
+      enabled = false
     }
   },
 ]
@@ -307,7 +309,8 @@ accounting_enabled = true
 #----------------------------------------------------------------------------------------------------------------------#
 # Both jail filesystems are 500 GiB (< 12 TiB) so backups are on by default.
 backups_enabled        = "auto"
-backups_password       = "change-me-before-deploy"
+# backups_password is kept out of git — set it in secrets.auto.tfvars (gitignored).
+# Create that file with: backups_password = "your-strong-password"
 backups_schedule       = "@daily-random"
 backups_prune_schedule = "@daily-random"
 backups_retention = {

@@ -202,14 +202,14 @@ module "nfs-server" {
   source = "../../../modules/nfs-server"
 
   parent_id = data.nebius_iam_v1_project.this.id
-  subnet_id = nebius_vpc_v1_subnet.this.id
+  subnet_id = data.nebius_vpc_v1_subnet.this.id
 
   platform      = var.nfs.resource.platform
   preset        = var.nfs.resource.preset
   instance_name = "${local.k8s_cluster_name}-nfs-server"
 
   nfs_disk_name_suffix = local.k8s_cluster_name
-  nfs_ip_range         = nebius_vpc_v1_subnet.this.status.ipv4_private_cidrs[0]
+  nfs_ip_range         = data.nebius_vpc_v1_subnet.this.status.ipv4_private_cidrs[0]
   nfs_size             = provider::units::from_gib(var.nfs.size_gibibytes)
   nfs_path             = "/nfs"
 
@@ -265,7 +265,7 @@ module "k8s" {
   source = "../../modules/k8s"
 
   iam_project_id  = data.nebius_iam_v1_project.this.id
-  vpc_subnet_id   = nebius_vpc_v1_subnet.this.id
+  vpc_subnet_id   = data.nebius_vpc_v1_subnet.this.id
   login_public_ip = var.slurm_login_public_ip
 
   k8s_version                  = var.k8s_version
@@ -389,6 +389,10 @@ module "slurm" {
     # writing to the bucket during aws s3 rm, causing BucketNotEmpty. See
     # SCHED-1401.
     module.backups_store,
+    # Ensures FluxCD is reinstalled whenever the K8s cluster is recreated.
+    # module.fluxcd has a static trigger and only runs once; this resource
+    # fires on every cluster_id change (destroy+recreate scenario).
+    terraform_data.fluxcd_reinstall,
   ]
 
   source = "../../modules/slurm"
